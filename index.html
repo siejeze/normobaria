@@ -60,6 +60,10 @@ h1{
   margin:0 0 1.2rem;
   color:var(--mieta);
 }
+.dane{
+  font-family:"DM Mono",monospace;font-size:.8rem;color:var(--pol);
+  margin:0 0 1.4rem;letter-spacing:.02em;
+}
 .info{background:var(--karta);border:1px solid var(--linia);border-radius:16px;
   margin:0 0 1.4rem;box-shadow:0 2px 12px rgba(0,0,0,.35)}
 .info[hidden]{display:none}
@@ -209,6 +213,8 @@ button.cichy:hover{color:var(--alarm)}
     <p class="nadpis"><button id="nadpis-info" type="button" title="Informacje o normobarii"></button><span aria-hidden="true"> · </span><a id="nadpis-mapa" href="#" target="_blank" rel="noopener"></a></p>
     <h1>Zapisz się<br>na sesję</h1>
 
+    <p class="dane" id="dane"></p>
+
     <div class="info" id="panel-info" hidden>
       <div class="info-tresc">
         <h4>Jak działa komora normobaryczna?</h4>
@@ -331,6 +337,12 @@ let wybranyDzien = null;
 let otwartySlot = null;
 
 /* --- nagłówek ------------------------------------------------------- */
+function ileMiejsc(n){   // polska odmiana: 1 miejsce, 2-4 miejsca, 5+ miejsc
+  if (n === 1) return "1 miejsce";
+  const dz = n % 10, st = n % 100;
+  return (dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14)) ? `${n} miejsca` : `${n} miejsc`;
+}
+$("#dane").textContent = `${CONFIG.dlugoscMin} min · ${CONFIG.cisnienie} · ${ileMiejsc(CONFIG.pojemnosc)} w komorze`;
 $("#nadpis-info").textContent = CONFIG.nazwa;
 $("#nadpis-mapa").textContent = CONFIG.miejsce + " — jak dojechać";
 $("#nadpis-mapa").href = CONFIG.linkMapa;
