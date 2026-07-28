@@ -153,9 +153,6 @@ button.cichy:hover{color:var(--alarm)}
   padding:1.3rem;border-radius:20px;margin-bottom:1rem}
 .bilet h3{font-family:"Outfit",sans-serif;font-weight:700;font-size:1.25rem;margin:0 0 .5rem;
   color:var(--mieta)}
-.bilet .kod{font-family:"DM Mono",monospace;font-weight:500;font-size:1.8rem;letter-spacing:.24em;
-  background:#05101F;color:var(--mieta);padding:.55rem .9rem;border-radius:12px;
-  display:inline-block;margin:.7rem 0}
 .bilet p{margin:.3rem 0;font-size:.94rem;color:#9FE6CF}
 
 .komunikat{font-size:.93rem;color:var(--pol);background:var(--karta);border:1px dashed var(--linia);
@@ -168,7 +165,6 @@ button.cichy:hover{color:var(--alarm)}
   text-decoration:none;white-space:nowrap;margin-left:.5rem}
 .obsluga-wiersz .tel:hover{text-decoration:underline}
 .obsluga-wiersz .uwagi{display:block;color:var(--pol);font-size:.85rem;margin-top:.15rem}
-.obsluga-wiersz .kodm{font-family:"DM Mono",monospace;font-size:.78rem;color:var(--pol);margin-left:.5rem}
 .obsluga-wiersz .odwolaj{float:right}
 
 /* ==== PASEK INSTALACJI I BRAK SIECI ============================ */
@@ -482,7 +478,7 @@ async function zapisz(slot, panel){
     const wynik = await r.json();
     if (!r.ok) throw new Error(wynik.message || wynik.hint || "Nie udało się zapisać.");
     await pobierzZajetosc();
-    pokazBilet(slot, dane.p_osoby, wynik.kod);
+    pokazBilet(slot, dane.p_osoby);
   }catch(e){
     blad.hidden = false; blad.textContent = e.message;
     btn.disabled = false; btn.textContent = "Rezerwuję";
@@ -491,7 +487,7 @@ async function zapisz(slot, panel){
   }
 }
 
-function pokazBilet(slot, osoby, kod){
+function pokazBilet(slot, osoby){
   otwartySlot = null;
   rysujDni(); rysujGodziny();
   const bilet = document.createElement("div");
@@ -500,9 +496,8 @@ function pokazBilet(slot, osoby, kod){
   bilet.innerHTML = `
     <h3>Termin zarezerwowany</h3>
     <p>${DNI_PL[slot.data.getDay()]} ${slot.data.getDate()} ${MIES_PL[slot.data.getMonth()]}, godz. ${slot.etykieta} — ${osoby === 1 ? "1 osoba" : osoby + " osoby"}</p>
-    <p>Zapisz ten kod. Nim odwołasz wizytę, jeśli coś wypadnie:</p>
-    <div class="kod">${kod}</div>
     <p>Przyjdź 10 minut wcześniej. Do zobaczenia.</p>
+    <p>Coś Ci wypadło? Zadzwoń: 796 676 132 lub 519 519 828.</p>
   `;
   const lista = $("#lista");
   lista.parentNode.insertBefore(bilet, lista);
@@ -557,7 +552,6 @@ async function rysujObsluge(){
       `<button class="cichy odwolaj" type="button">Odwołaj</button>
        <b class="godz">${godz}</b><b>${esc(w.imie)}</b> — ${opisOsob(w.osoby)}
        <a class="tel" href="tel:${esc(w.telefon)}">${esc(w.telefon)}</a>
-       <span class="kodm">kod: ${esc(w.kod)}</span>
        ${w.uwagi ? `<span class="uwagi">${esc(w.uwagi)}</span>` : ""}`;
     div.querySelector(".odwolaj").addEventListener("click", async (ev) => {
       if (!confirm(`Odwołać rezerwację: ${w.imie}, ${godz}?`)) return;
