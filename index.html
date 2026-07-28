@@ -526,7 +526,9 @@ async function pobierzListeObslugi(){
   return wynik;
 }
 
+let obslugaZapytanie = 0;   // strażnik wyścigu: starsze rysowanie nie nadpisze nowszego
 async function rysujObsluge(){
+  const moje = ++obslugaZapytanie;
   const lista = $("#lista"), kom = $("#komunikat");
   lista.innerHTML = ""; kom.hidden = true;
   $("#naglowek-dnia").textContent =
@@ -534,10 +536,13 @@ async function rysujObsluge(){
   let wpisy;
   try{ wpisy = await pobierzListeObslugi(); }
   catch(e){
+    if (moje !== obslugaZapytanie) return;
     trybObsluga = false; pinObslugi = null;
     $("#btn-obsluga").textContent = "Obsługa";
     alert(e.message); rysujGodziny(); return;
   }
+  if (moje !== obslugaZapytanie) return;   // w międzyczasie ruszyło nowsze rysowanie
+  lista.innerHTML = "";
   if (!wpisy.length){
     kom.hidden = false; kom.textContent = "Brak zapisów na ten dzień."; return;
   }
