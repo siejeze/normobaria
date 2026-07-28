@@ -161,6 +161,16 @@ button.cichy:hover{color:var(--alarm)}
 .komunikat{font-size:.93rem;color:var(--pol);background:var(--karta);border:1px dashed var(--linia);
   border-radius:16px;padding:1.1rem;text-align:center}
 
+/* ==== OBSŁUGA ================================================== */
+.obsluga-wiersz{padding:.85rem 1rem;font-size:.95rem;line-height:1.55}
+.obsluga-wiersz .godz{color:var(--mieta);margin-right:.5rem}
+.obsluga-wiersz .tel{font-family:"DM Mono",monospace;font-size:.9rem;color:#6FA8FF;
+  text-decoration:none;white-space:nowrap;margin-left:.5rem}
+.obsluga-wiersz .tel:hover{text-decoration:underline}
+.obsluga-wiersz .uwagi{display:block;color:var(--pol);font-size:.85rem;margin-top:.15rem}
+.obsluga-wiersz .kodm{font-family:"DM Mono",monospace;font-size:.78rem;color:var(--pol);margin-left:.5rem}
+.obsluga-wiersz .odwolaj{float:right}
+
 /* ==== PASEK INSTALACJI I BRAK SIECI ============================ */
 .pasek{
   position:fixed;left:0;right:0;bottom:0;z-index:9;
@@ -203,6 +213,10 @@ button.cichy:hover{color:var(--alarm)}
   <p class="komunikat" id="komunikat">Wczytuję wolne terminy…</p>
 
   <p class="ostrzezenie" style="margin-top:calc(var(--rytm)*1.6)"><b>Uwaga!</b> Jeśli na dany dzień w grafiku zapisana jest jedna osoba, sesja normobarii ze względów bezpieczeństwa się nie odbędzie. Prosimy o przepisanie się na inny dzień albo o kontakt telefoniczny pod jednym z powyższych numerów.</p>
+
+  <p style="text-align:center;margin:calc(var(--rytm)*1.4) 0 0">
+    <button class="cichy" id="btn-obsluga" type="button" style="font-size:.78rem">Obsługa</button>
+  </p>
 
 </div>
 
@@ -371,6 +385,7 @@ function rysujGodziny(){
   const lista = $("#lista"), kom = $("#komunikat");
   lista.innerHTML = ""; kom.hidden = true;
   if (!wybranyDzien) return;
+  if (trybObsluga){ rysujObsluge(); return; }
 
   $("#naglowek-dnia").textContent =
     `${DNI_PL[wybranyDzien.getDay()]} ${wybranyDzien.getDate()} ${MIES_PL[wybranyDzien.getMonth()]}`;
@@ -494,6 +509,86 @@ function pokazBilet(slot, osoby, kod){
   bilet.scrollIntoView({behavior:"smooth", block:"center"});
   setTimeout(() => bilet.remove(), 60000);
 }
+
+/* --- tryb obsługi (PIN) --------------------------------------------- */
+let trybObsluga = false;
+let pinObslugi = null;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function opisOsob(n){   // 1 osoba, 2-4 osoby, 5+ osób
+  if (n === 1) return "1 osoba";
+  const dz = n % 10, st = n % 100;
+  return (dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14)) ? `${n} osoby` : `${n} osób`;
+}
+
+async function pobierzListeObslugi(){
+  const r = await fetch(api("rpc/lista_zapisow"), {
+    method:"POST", headers: naglowki,
+    body: JSON.stringify({ p_dzien: klucz(wybranyDzien), p_pin: pinObslugi })
+  });
+  const wynik = await r.json();
+  if (!r.ok) throw new Error(wynik.message || "Nie udało się pobrać listy.");
+  return wynik;
+}
+
+async function rysujObsluge(){
+  const lista = $("#lista"), kom = $("#komunikat");
+  lista.innerHTML = ""; kom.hidden = true;
+  $("#naglowek-dnia").textContent =
+    `Obsługa · ${DNI_PL[wybranyDzien.getDay()]} ${wybranyDzien.getDate()} ${MIES_PL[wybranyDzien.getMonth()]}`;
+  let wpisy;
+  try{ wpisy = await pobierzListeObslugi(); }
+  catch(e){
+    trybObsluga = false; pinObslugi = null;
+    $("#btn-obsluga").textContent = "Obsługa";
+    alert(e.message); rysujGodziny(); return;
+  }
+  if (!wpisy.length){
+    kom.hidden = false; kom.textContent = "Brak zapisów na ten dzień."; return;
+  }
+  wpisy.forEach(w => {
+    const d = new Date(w.slot);
+    const godz = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    const li = document.createElement("li");
+    li.className = "wiersz";
+    const div = document.createElement("div");
+    div.className = "obsluga-wiersz";
+    div.innerHTML =
+      `<button class="cichy odwolaj" type="button">Odwołaj</button>
+       <b class="godz">${godz}</b><b>${esc(w.imie)}</b> — ${opisOsob(w.osoby)}
+       <a class="tel" href="tel:${esc(w.telefon)}">${esc(w.telefon)}</a>
+       <span class="kodm">kod: ${esc(w.kod)}</span>
+       ${w.uwagi ? `<span class="uwagi">${esc(w.uwagi)}</span>` : ""}`;
+    div.querySelector(".odwolaj").addEventListener("click", async (ev) => {
+      if (!confirm(`Odwołać rezerwację: ${w.imie}, ${godz}?`)) return;
+      ev.target.disabled = true;
+      try{
+        const r = await fetch(api("rpc/odwolaj_obsluga"), {
+          method:"POST", headers: naglowki,
+          body: JSON.stringify({ p_id: w.id, p_pin: pinObslugi })
+        });
+        const wynik = await r.json();
+        if (!r.ok) throw new Error(wynik.message || "Nie udało się odwołać.");
+        await pobierzZajetosc(); rysujDni(); rysujObsluge();
+      }catch(e){ alert(e.message); ev.target.disabled = false; }
+    });
+    li.appendChild(div);
+    lista.appendChild(li);
+  });
+}
+
+$("#btn-obsluga").addEventListener("click", () => {
+  if (trybObsluga){
+    trybObsluga = false; pinObslugi = null;
+    $("#btn-obsluga").textContent = "Obsługa";
+    rysujGodziny(); return;
+  }
+  const pin = prompt("PIN obsługi:");
+  if (!pin) return;
+  pinObslugi = pin; trybObsluga = true;
+  $("#btn-obsluga").textContent = "Wyjdź z trybu obsługi";
+  rysujGodziny();
+});
 
 /* --- instalacja na telefonie i tryb offline ------------------------- */
 const pasekI = $("#pasek-instaluj"), tekstI = $("#tekst-instaluj"), btnI = $("#btn-instaluj");
