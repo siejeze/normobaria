@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Komora normobaryczna — zapisy</title>
+<meta name="description" content="Rezerwacja sesji w komorze normobarycznej. Wybierz dzień i godzinę.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0E2A31">
+<link rel="icon" href="ikony/ikona-192.png" type="image/png">
+<link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Normobaria">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,300..600&display=swap" rel="stylesheet">
+<style>
+/* ==== USTAWIENIA WYGLĄDU ======================================= */
+:root{
+  --mgla:#E4EBEB;      /* tło: chłodna mgła */
+  --karta:#F3F7F7;
+  --glebia:#0E2A31;    /* atrament */
+  --pol:#4A6A70;       /* tekst wtórny */
+  --tlen:#12857C;      /* wolne */
+  --mosiadz:#A9782B;   /* instrument: linie, cyfry, wskazówka */
+  --martwy:#AFBCBE;    /* zajęte */
+  --alarm:#8E3B2C;
+  --rytm:clamp(16px,3.2vw,24px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--mgla);
+  color:var(--glebia);
+  font-family:"Newsreader",Georgia,serif;
+  font-size:clamp(17px,1.05rem,19px);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.plansza{max-width:640px;margin:0 auto;padding:var(--rytm) var(--rytm) 64px}
+
+/* ==== NAGŁÓWEK ================================================= */
+.nadpis{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--mosiadz);margin:0 0 .9rem;
+}
+h1{
+  font-family:"Archivo",system-ui,sans-serif;
+  font-variation-settings:"wdth" 118,"wght" 640;
+  font-size:clamp(2rem,7.5vw,3rem);line-height:1.02;
+  letter-spacing:-.015em;margin:0 0 1.1rem;text-transform:uppercase;
+}
+.profil{display:block;width:100%;height:auto;margin:.4rem 0 .2rem}
+.profil path{fill:none;stroke:var(--mosiadz);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.profil .os{stroke:var(--martwy);stroke-width:1;stroke-dasharray:2 4}
+.profil text{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.14em;fill:var(--pol)}
+@media (prefers-reduced-motion:no-preference){
+  .profil .krzywa{stroke-dasharray:700;stroke-dashoffset:700;animation:rysuj 1.9s cubic-bezier(.6,.05,.3,1) .25s forwards}
+}
+@keyframes rysuj{to{stroke-dashoffset:0}}
+.dane{
+  font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.06em;
+  color:var(--pol);margin:.2rem 0 0;
+}
+.kreska{border:0;border-top:1px solid var(--martwy);margin:calc(var(--rytm)*1.2) 0}
+
+/* ==== PASEK DNI ================================================ */
+.dni{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+.dzien{
+  flex:0 0 auto;background:transparent;border:1px solid var(--martwy);
+  border-radius:2px;padding:.5rem .7rem;cursor:pointer;color:var(--pol);
+  font-family:"IBM Plex Mono",monospace;font-size:.74rem;line-height:1.3;
+  text-align:center;min-width:58px;transition:border-color .15s,color .15s,background .15s;
+}
+.dzien b{display:block;font-size:1.15rem;font-weight:500;color:var(--glebia)}
+.dzien:hover{border-color:var(--mosiadz)}
+.dzien[aria-pressed="true"]{background:var(--glebia);border-color:var(--glebia);color:var(--mgla)}
+.dzien[aria-pressed="true"] b{color:#fff}
+.dzien.pusty{opacity:.42}
+
+/* ==== LISTA GODZIN ============================================= */
+.naglowek-dnia{
+  font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 108,"wght" 600;
+  text-transform:uppercase;letter-spacing:.04em;font-size:1rem;margin:calc(var(--rytm)*1.1) 0 .6rem;
+}
+.lista{list-style:none;margin:0;padding:0}
+.wiersz{border-top:1px solid rgba(14,42,49,.14)}
+.wiersz:last-child{border-bottom:1px solid rgba(14,42,49,.14)}
+.klik{
+  width:100%;display:flex;align-items:center;gap:.9rem;
+  background:none;border:0;padding:.85rem .2rem;cursor:pointer;text-align:left;
+  font:inherit;color:inherit;transition:padding-left .18s,background .18s;
+}
+.klik:hover:not([disabled]){padding-left:.6rem;background:rgba(169,120,43,.07)}
+.klik[disabled]{cursor:default;color:var(--pol)}
+.klik:focus-visible{outline:2px solid var(--mosiadz);outline-offset:2px}
+.godz{font-family:"IBM Plex Mono",monospace;font-size:1.08rem;letter-spacing:.02em;min-width:4.2em}
+.miejsca{display:flex;gap:5px;flex:0 0 auto}
+.kropka{width:9px;height:9px;border-radius:50%;border:1.4px solid var(--tlen)}
+.kropka.zajeta{background:var(--martwy);border-color:var(--martwy)}
+.stan{margin-left:auto;font-size:.86rem;color:var(--pol);text-align:right}
+.klik:not([disabled]) .stan{color:var(--tlen)}
+.komplet .godz{color:var(--martwy);text-decoration:line-through;text-decoration-thickness:1px}
+
+/* ==== PANEL ZAPISU ============================================= */
+.panel{background:var(--karta);border-left:2px solid var(--mosiadz);padding:1rem 1.1rem 1.2rem;margin-bottom:.2rem}
+.panel h3{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 110,"wght" 600;
+  text-transform:uppercase;letter-spacing:.05em;font-size:.82rem;margin:0 0 .9rem;color:var(--pol)}
+label{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--pol);margin:0 0 .3rem}
+input,select,textarea{
+  width:100%;font:inherit;font-size:1rem;padding:.6rem .7rem;margin-bottom:.85rem;
+  background:#fff;border:1px solid var(--martwy);border-radius:2px;color:var(--glebia);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--mosiadz);outline-offset:-1px;border-color:var(--mosiadz)}
+textarea{min-height:64px;resize:vertical}
+.para{display:flex;gap:.7rem}
+.para>div{flex:1}
+button.akcja{
+  font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 112,"wght" 620;
+  text-transform:uppercase;letter-spacing:.08em;font-size:.85rem;
+  background:var(--glebia);color:var(--mgla);border:0;border-radius:2px;
+  padding:.8rem 1.4rem;cursor:pointer;transition:background .15s;
+}
+button.akcja:hover{background:var(--tlen)}
+button.akcja[disabled]{background:var(--martwy);cursor:wait}
+button.cichy{background:none;border:0;color:var(--pol);font-family:"IBM Plex Mono",monospace;
+  font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:.8rem .4rem}
+button.cichy:hover{color:var(--alarm)}
+.blad{color:var(--alarm);font-size:.9rem;margin:0 0 .8rem}
+.zgoda{font-size:.78rem;color:var(--pol);line-height:1.4;margin:.2rem 0 1rem}
+
+/* ==== POTWIERDZENIE ============================================ */
+.bilet{background:var(--glebia);color:var(--mgla);padding:1.2rem 1.2rem 1.4rem;border-radius:2px}
+.bilet h3{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 112,"wght" 620;
+  text-transform:uppercase;letter-spacing:.06em;font-size:1rem;margin:0 0 .5rem;color:#fff}
+.bilet .kod{font-family:"IBM Plex Mono",monospace;font-size:1.7rem;letter-spacing:.28em;
+  color:#fff;background:rgba(255,255,255,.09);padding:.5rem .7rem;display:inline-block;margin:.6rem 0}
+.bilet p{margin:.3rem 0;font-size:.92rem;color:#C9D9DA}
+
+/* ==== STOPKA =================================================== */
+.stopka{margin-top:calc(var(--rytm)*1.6);font-size:.88rem;color:var(--pol)}
+.stopka summary{cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:.74rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--mosiadz)}
+.stopka .tresc{padding-top:.9rem;max-width:22rem}
+.komunikat{font-size:.92rem;color:var(--pol);padding:1.2rem 0}
+
+/* ==== PASEK INSTALACJI I BRAK SIECI ============================ */
+.pasek{
+  position:fixed;left:0;right:0;bottom:0;z-index:9;
+  background:var(--glebia);color:var(--mgla);
+  padding:.85rem var(--rytm);display:flex;align-items:center;gap:.9rem;
+  font-size:.88rem;line-height:1.35;
+}
+.pasek[hidden]{display:none}
+.pasek .tekst{flex:1}
+.pasek .tekst b{color:#fff;font-weight:600}
+.pasek button.akcja{padding:.55rem .9rem;font-size:.76rem;background:var(--mosiadz);color:#fff;flex:0 0 auto}
+.pasek button.akcja:hover{background:var(--tlen)}
+.pasek button.zamknij{background:none;border:0;color:#9FB4B7;font-size:1.4rem;line-height:1;
+  cursor:pointer;padding:0 .2rem;flex:0 0 auto}
+.pasek.brak-sieci{background:var(--alarm)}
+.plansza{padding-bottom:120px}
+</style>
+</head>
+<body>
+<div class="plansza">
+
+  <header>
+    <p class="nadpis" id="nadpis">Normobaria</p>
+    <h1>Zapisz się<br>na sesję</h1>
+
+    <svg class="profil" viewBox="0 0 600 74" role="img" aria-label="Profil ciśnienia sesji: sprężanie, sesja, dekompresja">
+      <path class="os" d="M0 52 H600"/>
+      <path class="krzywa" d="M2 52 H70 L150 16 H450 L530 52 H598"/>
+      <text x="70"  y="68" text-anchor="middle">SPRĘŻANIE</text>
+      <text x="300" y="68" text-anchor="middle">SESJA</text>
+      <text x="530" y="68" text-anchor="middle">DEKOMPRESJA</text>
+    </svg>
+    <p class="dane" id="dane"></p>
+  </header>
+
+  <hr class="kreska">
+
+  <nav class="dni" id="dni" aria-label="Wybór dnia"></nav>
+
+  <h2 class="naglowek-dnia" id="naglowek-dnia">—</h2>
+  <ul class="lista" id="lista"></ul>
+  <p class="komunikat" id="komunikat">Wczytuję wolne terminy…</p>
+
+  <details class="stopka">
+    <summary>Chcę odwołać rezerwację</summary>
+    <div class="tresc">
+      <p>Wpisz kod z potwierdzenia. Termin od razu wróci do puli.</p>
+      <label for="kod-odw">Kod rezerwacji</label>
+      <input id="kod-odw" maxlength="8" autocomplete="off" placeholder="np. 7A2F19">
+      <p class="blad" id="blad-odw" hidden></p>
+      <button class="akcja" id="btn-odw">Odwołaj rezerwację</button>
+    </div>
+  </details>
+
+</div>
+
+<div class="pasek" id="pasek-instaluj" hidden>
+  <span class="tekst" id="tekst-instaluj"></span>
+  <button class="akcja" id="btn-instaluj" hidden>Dodaj</button>
+  <button class="zamknij" id="btn-zamknij-instaluj" aria-label="Zamknij">×</button>
+</div>
+
+<div class="pasek brak-sieci" id="pasek-sieci" hidden>
+  <span class="tekst">Brak połączenia. Wolne terminy pokażą się, gdy internet wróci.</span>
+</div>
+
+<script>
+/* =====================================================================
+   USTAWIENIA — edytujesz tylko ten blok.
+   ===================================================================== */
+const CONFIG = {
+  nazwa:        "Normobaria",
+  miejsce:      "Konin",
+  SUPABASE_URL: "https://TWOJ-PROJEKT.supabase.co",   // <<< wklej
+  SUPABASE_KEY: "TWOJ_KLUCZ_ANON",                    // <<< wklej
+  pojemnosc:    4,        // miejsc w komorze (musi się zgadzać z baza.sql!)
+  dlugoscMin:   75,       // długość sesji w minutach
+  cisnienie:    "1,5 ATA",
+  dniNaprzod:   21,
+  wyprzedzenieH: 2,       // nie da się zapisać na termin bliższy niż X godzin
+  // godziny startu sesji dla każdego dnia tygodnia (0 = niedziela)
+  godziny: {
+    0: [],
+    1: ["09:00","10:45","12:30","16:00","17:45"],
+    2: ["09:00","10:45","12:30","16:00","17:45"],
+    3: ["09:00","10:45","12:30","16:00","17:45"],
+    4: ["09:00","10:45","12:30","16:00","17:45"],
+    5: ["09:00","10:45","12:30","16:00"],
+    6: ["10:00","11:45"],
+  },
+  // dni zamknięte, format "RRRR-MM-DD"
+  wolne: ["2026-08-15"],
+};
+
+/* ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const DNI_PL   = ["niedz.","pon.","wt.","śr.","czw.","pt.","sob."];
+const MIES_PL  = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"];
+const api = (sciezka) => CONFIG.SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/" + sciezka;
+const naglowki = {
+  "apikey": CONFIG.SUPABASE_KEY,
+  "Authorization": "Bearer " + CONFIG.SUPABASE_KEY,
+  "Content-Type": "application/json",
+};
+
+let zajetosc = new Map();   // klucz: czas w ms → liczba zajętych miejsc
+let wybranyDzien = null;
+let otwartySlot = null;
+
+/* --- nagłówek ------------------------------------------------------- */
+$("#nadpis").textContent = CONFIG.nazwa + " · " + CONFIG.miejsce;
+$("#dane").textContent = `${CONFIG.dlugoscMin} min · ${CONFIG.cisnienie} · ${CONFIG.pojemnosc} miejsca w komorze`;
+document.title = `${CONFIG.nazwa} ${CONFIG.miejsce} — zapisy`;
+
+/* --- pomocnicze ----------------------------------------------------- */
+function klucz(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function slotyDnia(data){
+  if (CONFIG.wolne.includes(klucz(data))) return [];
+  const lista = CONFIG.godziny[data.getDay()] || [];
+  const prog = Date.now() + CONFIG.wyprzedzenieH*3600*1000;
+  return lista.map(g => {
+    const [h,m] = g.split(":").map(Number);
+    const d = new Date(data.getFullYear(), data.getMonth(), data.getDate(), h, m, 0, 0);
+    return { etykieta: g, data: d, przeszly: d.getTime() < prog };
+  }).filter(s => !s.przeszly);
+}
+function najblizszeDni(){
+  const out = [];
+  const dzis = new Date(); dzis.setHours(0,0,0,0);
+  for (let i=0; i<CONFIG.dniNaprzod; i++){
+    const d = new Date(dzis); d.setDate(dzis.getDate()+i);
+    out.push({ data:d, sloty: slotyDnia(d).length });
+  }
+  return out;
+}
+
+/* --- pobranie zajętości --------------------------------------------- */
+async function pobierzZajetosc(){
+  const od = new Date(); od.setHours(0,0,0,0);
+  const url = api(`zajetosc?select=slot,zajete&slot=gte.${encodeURIComponent(od.toISOString())}`);
+  const r = await fetch(url, { headers: naglowki });
+  if (!r.ok) throw new Error("Nie udało się wczytać grafiku.");
+  const dane = await r.json();
+  zajetosc = new Map(dane.map(w => [new Date(w.slot).getTime(), w.zajete]));
+}
+
+/* --- rysowanie ------------------------------------------------------ */
+function rysujDni(){
+  const nav = $("#dni");
+  nav.innerHTML = "";
+  najblizszeDni().forEach(({data, sloty}) => {
+    const b = document.createElement("button");
+    b.className = "dzien" + (sloty === 0 ? " pusty" : "");
+    b.type = "button";
+    b.setAttribute("aria-pressed", wybranyDzien && klucz(wybranyDzien) === klucz(data));
+    b.innerHTML = `${DNI_PL[data.getDay()]}<b>${data.getDate()}</b>`;
+    b.addEventListener("click", () => { wybranyDzien = data; otwartySlot = null; rysujDni(); rysujGodziny(); });
+    nav.appendChild(b);
+  });
+}
+
+function rysujGodziny(){
+  const lista = $("#lista"), kom = $("#komunikat");
+  lista.innerHTML = ""; kom.hidden = true;
+  if (!wybranyDzien) return;
+
+  $("#naglowek-dnia").textContent =
+    `${DNI_PL[wybranyDzien.getDay()]} ${wybranyDzien.getDate()} ${MIES_PL[wybranyDzien.getMonth()]}`;
+
+  const sloty = slotyDnia(wybranyDzien);
+  if (!sloty.length){
+    kom.hidden = false;
+    kom.textContent = "Tego dnia komora jest nieczynna. Wybierz inny dzień z paska powyżej.";
+    return;
+  }
+
+  sloty.forEach(s => {
+    const zajete = zajetosc.get(s.data.getTime()) || 0;
+    const wolne = Math.max(0, CONFIG.pojemnosc - zajete);
+    const li = document.createElement("li");
+    li.className = "wiersz" + (wolne === 0 ? " komplet" : "");
+
+    const kropki = Array.from({length: CONFIG.pojemnosc}, (_,i) =>
+      `<span class="kropka${i < zajete ? " zajeta" : ""}"></span>`).join("");
+
+    const btn = document.createElement("button");
+    btn.className = "klik"; btn.type = "button";
+    if (wolne === 0) btn.disabled = true;
+    btn.innerHTML =
+      `<span class="godz">${s.etykieta}</span>
+       <span class="miejsca" aria-hidden="true">${kropki}</span>
+       <span class="stan">${wolne === 0 ? "komplet" : (wolne === 1 ? "ostatnie miejsce" : wolne + " wolne miejsca")}</span>`;
+    btn.setAttribute("aria-label",
+      `${s.etykieta}, ${wolne === 0 ? "brak miejsc" : wolne + " wolnych miejsc"}`);
+    btn.addEventListener("click", () => {
+      otwartySlot = (otwartySlot === s.data.getTime()) ? null : s.data.getTime();
+      rysujGodziny();
+      if (otwartySlot) setTimeout(() => $("#imie")?.focus(), 60);
+    });
+
+    li.appendChild(btn);
+    if (otwartySlot === s.data.getTime()) li.appendChild(panelZapisu(s, wolne));
+    lista.appendChild(li);
+  });
+}
+
+/* --- panel zapisu --------------------------------------------------- */
+function panelZapisu(slot, wolne){
+  const div = document.createElement("div");
+  div.className = "panel";
+  const opcje = Array.from({length: wolne}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join("");
+  div.innerHTML = `
+    <h3>Rezerwacja na ${slot.etykieta}</h3>
+    <p class="blad" id="blad" hidden></p>
+    <label for="imie">Imię i nazwisko</label>
+    <input id="imie" autocomplete="name" maxlength="60">
+    <div class="para">
+      <div>
+        <label for="tel">Telefon</label>
+        <input id="tel" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="600 100 200">
+      </div>
+      <div style="flex:0 0 6.5rem">
+        <label for="osoby">Osób</label>
+        <select id="osoby">${opcje}</select>
+      </div>
+    </div>
+    <label for="uwagi">Uwagi (nieobowiązkowo)</label>
+    <textarea id="uwagi" maxlength="300" placeholder="Pierwsza wizyta, pytanie o przeciwwskazania…"></textarea>
+    <p class="zgoda">Imię i telefon służą wyłącznie do potwierdzenia i odwołania wizyty. Inni klienci widzą tylko liczbę wolnych miejsc.</p>
+    <button class="akcja" id="btn-zapisz">Rezerwuję</button>
+    <button class="cichy" id="btn-anuluj">Rezygnuję</button>
+  `;
+  div.querySelector("#btn-anuluj").addEventListener("click", () => { otwartySlot = null; rysujGodziny(); });
+  div.querySelector("#btn-zapisz").addEventListener("click", () => zapisz(slot, div));
+  return div;
+}
+
+async function zapisz(slot, panel){
+  const btn = panel.querySelector("#btn-zapisz");
+  const blad = panel.querySelector("#blad");
+  const dane = {
+    p_slot:    slot.data.toISOString(),
+    p_imie:    panel.querySelector("#imie").value,
+    p_telefon: panel.querySelector("#tel").value,
+    p_osoby:   Number(panel.querySelector("#osoby").value),
+    p_uwagi:   panel.querySelector("#uwagi").value,
+  };
+  blad.hidden = true;
+  btn.disabled = true; btn.textContent = "Zapisuję…";
+  try{
+    const r = await fetch(api("rpc/zarezerwuj"), {
+      method:"POST", headers: naglowki, body: JSON.stringify(dane)
+    });
+    const wynik = await r.json();
+    if (!r.ok) throw new Error(wynik.message || wynik.hint || "Nie udało się zapisać.");
+    await pobierzZajetosc();
+    pokazBilet(slot, dane.p_osoby, wynik.kod);
+  }catch(e){
+    blad.hidden = false; blad.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Rezerwuję";
+    await pobierzZajetosc();
+    const otwarty = otwartySlot; rysujGodziny(); otwartySlot = otwarty;
+  }
+}
+
+function pokazBilet(slot, osoby, kod){
+  otwartySlot = null;
+  rysujDni(); rysujGodziny();
+  const bilet = document.createElement("div");
+  bilet.className = "bilet";
+  bilet.setAttribute("role","status");
+  bilet.innerHTML = `
+    <h3>Termin zarezerwowany</h3>
+    <p>${DNI_PL[slot.data.getDay()]} ${slot.data.getDate()} ${MIES_PL[slot.data.getMonth()]}, godz. ${slot.etykieta} — ${osoby === 1 ? "1 osoba" : osoby + " osoby"}</p>
+    <p>Zapisz ten kod. Nim odwołasz wizytę, jeśli coś wypadnie:</p>
+    <div class="kod">${kod}</div>
+    <p>Przyjdź 10 minut wcześniej. Do zobaczenia.</p>
+  `;
+  const lista = $("#lista");
+  lista.parentNode.insertBefore(bilet, lista);
+  bilet.scrollIntoView({behavior:"smooth", block:"center"});
+  setTimeout(() => bilet.remove(), 60000);
+}
+
+/* --- odwoływanie ---------------------------------------------------- */
+$("#btn-odw").addEventListener("click", async () => {
+  const pole = $("#kod-odw"), blad = $("#blad-odw"), btn = $("#btn-odw");
+  blad.hidden = true; btn.disabled = true;
+  try{
+    const r = await fetch(api("rpc/odwolaj"), {
+      method:"POST", headers: naglowki, body: JSON.stringify({ p_kod: pole.value })
+    });
+    const wynik = await r.json();
+    if (!r.ok) throw new Error(wynik.message || "Nie znaleziono takiej rezerwacji.");
+    const d = new Date(wynik.slot);
+    blad.hidden = false; blad.style.color = "var(--tlen)";
+    blad.textContent = `Odwołane: ${DNI_PL[d.getDay()]} ${d.getDate()} ${MIES_PL[d.getMonth()]}, godz. ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}.`;
+    pole.value = "";
+    await pobierzZajetosc(); rysujDni(); rysujGodziny();
+  }catch(e){
+    blad.hidden = false; blad.style.color = "var(--alarm)"; blad.textContent = e.message;
+  }finally{ btn.disabled = false; }
+});
+
+/* --- instalacja na telefonie i tryb offline ------------------------- */
+const pasekI = $("#pasek-instaluj"), tekstI = $("#tekst-instaluj"), btnI = $("#btn-instaluj");
+let monit = null;
+
+function odlozone(){
+  try{ return localStorage.getItem("instalacja-odlozona") === "1"; }catch(e){ return false; }
+}
+function odloz(){
+  try{ localStorage.setItem("instalacja-odlozona","1"); }catch(e){}
+  pasekI.hidden = true;
+}
+$("#btn-zamknij-instaluj").addEventListener("click", odloz);
+
+const juzZainstalowana =
+  window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+// Android / Chrome — system sam podaje monit, my tylko wybieramy moment
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  monit = e;
+  if (juzZainstalowana || odlozone()) return;
+  tekstI.innerHTML = "<b>Zapisz apkę na telefonie</b> — następnym razem zarezerwujesz w dwa kliknięcia.";
+  btnI.hidden = false;
+  pasekI.hidden = false;
+});
+
+btnI.addEventListener("click", async () => {
+  if (!monit) return;
+  pasekI.hidden = true;
+  monit.prompt();
+  await monit.userChoice;
+  monit = null;
+});
+
+window.addEventListener("appinstalled", () => { pasekI.hidden = true; odloz(); });
+
+// iPhone — Safari nie ma monitu, trzeba powiedzieć ludzku, gdzie kliknąć
+const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if (iOS && !juzZainstalowana && !odlozone()){
+  tekstI.innerHTML = "<b>Zapisz apkę na telefonie:</b> przycisk Udostępnij na dole, potem „Dodaj do ekranu początkowego”.";
+  setTimeout(() => { pasekI.hidden = false; }, 2500);
+}
+
+// brak sieci
+const pasekS = $("#pasek-sieci");
+function stanSieci(){
+  pasekS.hidden = navigator.onLine;
+  if (!navigator.onLine) pasekI.hidden = true;
+}
+window.addEventListener("online", async () => {
+  stanSieci();
+  try{ await pobierzZajetosc(); rysujDni(); rysujGodziny(); }catch(e){}
+});
+window.addEventListener("offline", stanSieci);
+stanSieci();
+
+// service worker — apka wstaje natychmiast, nawet w słabym zasięgu
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+
+/* --- start ---------------------------------------------------------- */
+(async function start(){
+  try{
+    await pobierzZajetosc();
+  }catch(e){
+    $("#komunikat").textContent = "Nie mogę teraz wczytać grafiku. Odśwież stronę za chwilę albo zadzwoń.";
+    return;
+  }
+  const pierwszy = najblizszeDni().find(d => d.sloty > 0);
+  wybranyDzien = pierwszy ? pierwszy.data : new Date();
+  rysujDni(); rysujGodziny();
+  // odświeżanie w tle — ktoś inny mógł zająć miejsce
+  setInterval(async () => {
+    try{ await pobierzZajetosc(); if (!otwartySlot) rysujGodziny(); }catch(e){}
+  }, 45000);
+})();
+</script>
+</body>
+</html>
