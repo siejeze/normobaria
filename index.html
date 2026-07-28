@@ -585,6 +585,7 @@ $("#btn-obsluga").addEventListener("click", () => {
   const pin = prompt("PIN obsługi:");
   if (!pin) return;
   pinObslugi = pin; trybObsluga = true;
+  document.querySelectorAll(".bilet").forEach(b => b.remove());   // usuń wiszące potwierdzenie
   $("#btn-obsluga").textContent = "Wyjdź z trybu obsługi";
   rysujGodziny();
 });
