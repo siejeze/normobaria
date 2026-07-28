@@ -46,9 +46,13 @@ body{
 /* ==== NAGŁÓWEK ================================================= */
 .nadpis{
   display:inline-block;background:var(--blekit-jasny);color:#7FB0FF;
-  font-family:"DM Mono",ui-monospace,monospace;font-size:.88rem;letter-spacing:.1em;
+  font-family:"DM Mono",ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;
   text-transform:uppercase;padding:.35rem .8rem;border-radius:999px;margin:0 0 1rem;
 }
+.nadpis button,.nadpis a{font:inherit;letter-spacing:inherit;text-transform:inherit;
+  background:none;border:0;padding:0;cursor:pointer;text-decoration:none;color:inherit}
+.nadpis button:hover,.nadpis a:hover{text-decoration:underline}
+.nadpis a{color:#6FA8FF}
 h1{
   font-family:"Assistant",system-ui,sans-serif;font-weight:700;
   font-size:clamp(3rem,6.8vw,3.2rem);line-height:1.25;letter-spacing:0;
@@ -56,10 +60,15 @@ h1{
   margin:0 0 1.2rem;
   color:var(--mieta);
 }
-.dane{
-  font-family:"DM Mono",monospace;font-size:.8rem;color:var(--pol);
-  margin:0 0 1.4rem;letter-spacing:.02em;
-}
+.info{background:var(--karta);border:1px solid var(--linia);border-radius:16px;
+  margin:0 0 1.4rem;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.info[hidden]{display:none}
+.info-tresc{padding:.5rem 1.1rem 1.1rem;font-size:.88rem;line-height:1.55;color:#C7D4EE}
+.info-tresc h4{font-family:"Outfit",sans-serif;font-size:.95rem;color:var(--mieta);
+  margin:1rem 0 .3rem}
+.info-tresc p{margin:.25rem 0}
+.info-tresc ul{margin:.25rem 0;padding-left:1.2rem}
+.info-tresc li{margin:.15rem 0}
 
 /* ==== KONTAKT I OSTRZEŻENIE ==================================== */
 .kontakt{background:var(--karta);border:1px solid var(--linia);border-radius:16px;
@@ -181,16 +190,65 @@ button.cichy:hover{color:var(--alarm)}
 .pasek button.zamknij{background:none;border:0;color:#93A8C6;font-size:1.5rem;line-height:1;
   cursor:pointer;padding:0 .2rem;flex:0 0 auto}
 .pasek.brak-sieci{background:var(--alarm)}
+#pasek-instaluj{
+  left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);
+  flex-direction:column;align-items:stretch;text-align:center;gap:1rem;
+  width:min(92vw,340px);padding:1.4rem 1.3rem;border:1px solid var(--linia);
+  border-radius:20px;font-size:1rem;
+  box-shadow:0 12px 48px rgba(0,0,0,.65),0 0 0 100vmax rgba(4,8,20,.6);
+}
+#pasek-instaluj .tekst{font-size:1rem;line-height:1.5}
+#pasek-instaluj button.akcja{font-size:1.05rem;padding:.85rem 1.2rem;min-width:70%;align-self:center}
+#pasek-instaluj button.zamknij{position:absolute;top:.35rem;right:.6rem;font-size:1.6rem}
 </style>
 </head>
 <body>
 <div class="plansza">
 
   <header>
-    <p class="nadpis" id="nadpis">Normobaria</p>
+    <p class="nadpis"><button id="nadpis-info" type="button" title="Informacje o normobarii"></button><span aria-hidden="true"> · </span><a id="nadpis-mapa" href="#" target="_blank" rel="noopener"></a></p>
     <h1>Zapisz się<br>na sesję</h1>
 
-    <p class="dane" id="dane"></p>
+    <div class="info" id="panel-info" hidden>
+      <div class="info-tresc">
+        <h4>Jak działa komora normobaryczna?</h4>
+        <p>W komorze panuje ciśnienie ok. 1500&nbsp;hPa (1,5&nbsp;ATA), tlen to 35–40% zamiast zwykłych 21%, jest też więcej dwutlenku węgla i wodoru. Tlen lepiej rozpuszcza się we krwi i dociera nawet do słabiej ukrwionych tkanek — organizm produkuje więcej energii, szybciej się regeneruje, pobudzane są komórki macierzyste.</p>
+
+        <h4>Przed sesją</h4>
+        <ul>
+          <li>Uszy mogą się zatkać jak w samolocie — pomaga przełykanie śliny, żucie gumy albo zatkanie nosa i delikatne „przedmuchanie". Chore uszy lub zatoki? Powiedz obsłudze, kompresję można zwolnić.</li>
+          <li>Sesja trwa 90 minut — w każdej chwili możesz ją przerwać i wyjść.</li>
+          <li>Pij wodę redoks (z wodorem) — w komorze jest za darmo, wypij przynajmniej 4 szklanki.</li>
+          <li>Usiądź swobodnie, nie krzyżuj nóg ani rąk.</li>
+        </ul>
+
+        <h4>Kiedy normobaria może pomóc?</h4>
+        <ul>
+          <li>przewlekłe zmęczenie, problemy z koncentracją,</li>
+          <li>regeneracja po urazach, operacjach i złamaniach,</li>
+          <li>nadciśnienie, miażdżyca, cukrzyca i jej powikłania,</li>
+          <li>stany zapalne i autoimmunologiczne (Hashimoto, RZS, łuszczyca),</li>
+          <li>choroby neurologiczne (po udarze, SM, Parkinson),</li>
+          <li>bezsenność, obniżony nastrój, wzmocnienie odporności.</li>
+        </ul>
+
+        <h4>Przeciwwskazania</h4>
+        <ul>
+          <li>odma płucna i inne poważne schorzenia płuc,</li>
+          <li>nieustabilizowane nadciśnienie tętnicze,</li>
+          <li>ciąża (zwłaszcza pierwszy trymestr),</li>
+          <li>ostra infekcja, gorączka,</li>
+          <li>klaustrofobia,</li>
+          <li>niedawna operacja oka z zastosowaniem gazu,</li>
+          <li>świeże rany, szwy lub implanty — najpierw konsultacja z lekarzem.</li>
+        </ul>
+
+        <h4>Możliwe skutki uboczne</h4>
+        <p>Zatkane uszy, ból lub zawroty głowy przy pierwszych sesjach, przemijające zmęczenie. Zwykle szybko mijają — pomagają woda, odpoczynek i zaczynanie od krótszych sesji.</p>
+
+        <p>Normobaria to terapia wspomagająca — przy poważnych schorzeniach skonsultuj się wcześniej z lekarzem.</p>
+      </div>
+    </div>
 
     <div class="kontakt">
       <p class="etykieta">Kontakt w sprawie zapisów i pytania</p>
@@ -218,7 +276,7 @@ button.cichy:hover{color:var(--alarm)}
 
 <div class="pasek" id="pasek-instaluj" hidden>
   <span class="tekst" id="tekst-instaluj"></span>
-  <button class="akcja" id="btn-instaluj" hidden>Dodaj</button>
+  <button class="akcja" id="btn-instaluj" hidden>ZAINSTALUJ</button>
   <button class="zamknij" id="btn-zamknij-instaluj" aria-label="Zamknij">×</button>
 </div>
 
@@ -233,6 +291,7 @@ button.cichy:hover{color:var(--alarm)}
 const CONFIG = {
   nazwa:        "Normobaria",
   miejsce:      "Sanok",
+  linkMapa:     "https://www.google.com/maps/search/?api=1&query=Gorazdowskiego+4,+38-500+Sanok",   // link „jak dojechać"
   SUPABASE_URL: "https://klvnaounewzenbyzkfud.supabase.co",
   SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_UYu-5XJ-",
   pojemnosc:    14,        // miejsc w komorze (musi się zgadzać z baza.sql!)
@@ -272,13 +331,14 @@ let wybranyDzien = null;
 let otwartySlot = null;
 
 /* --- nagłówek ------------------------------------------------------- */
-function ileMiejsc(n){   // polska odmiana: 1 miejsce, 2-4 miejsca, 5+ miejsc
-  if (n === 1) return "1 miejsce";
-  const dz = n % 10, st = n % 100;
-  return (dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14)) ? `${n} miejsca` : `${n} miejsc`;
-}
-$("#nadpis").textContent = CONFIG.nazwa + " · " + CONFIG.miejsce;
-$("#dane").textContent = `${CONFIG.dlugoscMin} min · ${CONFIG.cisnienie} · ${ileMiejsc(CONFIG.pojemnosc)} w komorze`;
+$("#nadpis-info").textContent = CONFIG.nazwa;
+$("#nadpis-mapa").textContent = CONFIG.miejsce + " — jak dojechać";
+$("#nadpis-mapa").href = CONFIG.linkMapa;
+$("#nadpis-info").addEventListener("click", () => {
+  const panel = $("#panel-info");
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden) panel.scrollIntoView({behavior:"smooth", block:"start"});
+});
 document.title = `${CONFIG.nazwa} ${CONFIG.miejsce} — zapisy`;
 
 /* --- święta --------------------------------------------------------- */
