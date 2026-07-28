@@ -220,22 +220,22 @@ button.cichy:hover{color:var(--alarm)}
 const CONFIG = {
   nazwa:        "Normobaria",
   miejsce:      "Konin",
-  SUPABASE_URL: "https://TWOJ-PROJEKT.supabase.co",   // <<< wklej
-  SUPABASE_KEY: "TWOJ_KLUCZ_ANON",                    // <<< wklej
-  pojemnosc:    4,        // miejsc w komorze (musi się zgadzać z baza.sql!)
-  dlugoscMin:   75,       // długość sesji w minutach
+SUPABASE_URL: "https://klvnaounewzenbyzkfud.supabase.co",
+SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_Uyu-5XJ-",
+  pojemnosc:    14,        // miejsc w komorze (musi się zgadzać z baza.sql!)
+  dlugoscMin:   90,       // długość sesji w minutach
   cisnienie:    "1,5 ATA",
   dniNaprzod:   21,
   wyprzedzenieH: 2,       // nie da się zapisać na termin bliższy niż X godzin
   // godziny startu sesji dla każdego dnia tygodnia (0 = niedziela)
   godziny: {
     0: [],
-    1: ["09:00","10:45","12:30","16:00","17:45"],
-    2: ["09:00","10:45","12:30","16:00","17:45"],
-    3: ["09:00","10:45","12:30","16:00","17:45"],
-    4: ["09:00","10:45","12:30","16:00","17:45"],
-    5: ["09:00","10:45","12:30","16:00"],
-    6: ["10:00","11:45"],
+    1: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
+    2: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
+    3: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
+    4: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
+    5: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
+    6: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
   },
   // dni zamknięte, format "RRRR-MM-DD"
   wolne: ["2026-08-15"],
