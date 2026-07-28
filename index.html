@@ -100,6 +100,9 @@ h1{
 .miejsca{display:flex;gap:5px;flex:0 0 auto}
 .kropka{width:9px;height:9px;border-radius:50%;border:1.4px solid var(--tlen)}
 .kropka.zajeta{background:var(--martwy);border-color:var(--martwy)}
+.slupek{display:block;width:74px;height:7px;border:1.4px solid var(--tlen);border-radius:4px;overflow:hidden}
+.slupek i{display:block;height:100%;background:var(--martwy);transition:width .3s}
+.komplet .slupek{border-color:var(--martwy)}
 .stan{margin-left:auto;font-size:.86rem;color:var(--pol);text-align:right}
 .klik:not([disabled]) .stan{color:var(--tlen)}
 .komplet .godz{color:var(--martwy);text-decoration:line-through;text-decoration-thickness:1px}
@@ -220,8 +223,8 @@ button.cichy:hover{color:var(--alarm)}
 const CONFIG = {
   nazwa:        "Normobaria",
   miejsce:      "Konin",
-SUPABASE_URL: "https://klvnaounewzenbyzkfud.supabase.co",
-SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_Uyu-5XJ-",
+  SUPABASE_URL: "https://klvnaounewzenbyzkfud.supabase.co",
+  SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_Uyu-5XJ-",
   pojemnosc:    14,        // miejsc w komorze (musi się zgadzać z baza.sql!)
   dlugoscMin:   90,       // długość sesji w minutach
   cisnienie:    "1,5 ATA",
@@ -230,15 +233,17 @@ SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_Uyu-5XJ-",
   // godziny startu sesji dla każdego dnia tygodnia (0 = niedziela)
   godziny: {
     0: [],
-    1: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
-    2: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
-    3: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
-    4: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
-    5: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
-    6: ["09:00","11:00","13:00","15:00","17:00, 19:00"],
+    1: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    2: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    3: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    4: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    5: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    6: ["09:00","11:00","13:00","15:00","17:00","19:00"],
   },
-  // dni zamknięte, format "RRRR-MM-DD"
+  // dni zamknięte, format "RRRR-MM-DD" — Twoje urlopy, przeglądy, wyjazdy
   wolne: ["2026-08-15"],
+  // polskie święta ustawowo wolne — apka liczy je sama, także ruchome
+  swietaAutomatycznie: true,
 };
 
 /* ===================================================================== */
@@ -261,12 +266,52 @@ $("#nadpis").textContent = CONFIG.nazwa + " · " + CONFIG.miejsce;
 $("#dane").textContent = `${CONFIG.dlugoscMin} min · ${CONFIG.cisnienie} · ${CONFIG.pojemnosc} miejsca w komorze`;
 document.title = `${CONFIG.nazwa} ${CONFIG.miejsce} — zapisy`;
 
+/* --- święta --------------------------------------------------------- */
+// Wielkanoc wg algorytmu Gaussa-Meeusa. Od niej zależą wszystkie ruchome.
+function wielkanoc(rok){
+  const a = rok % 19, b = Math.floor(rok/100), c = rok % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4), k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l) / 451);
+  const mies = Math.floor((h + l - 7*m + 114) / 31);
+  const dz   = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(rok, mies - 1, dz);
+}
+function swietaRoku(rok){
+  const W = wielkanoc(rok);
+  const po = (ile) => { const x = new Date(W); x.setDate(x.getDate() + ile); return x; };
+  return [
+    [new Date(rok,0,1),  "Nowy Rok"],
+    [new Date(rok,0,6),  "Trzech Króli"],
+    [W,                  "Wielkanoc"],
+    [po(1),              "Poniedziałek Wielkanocny"],
+    [po(49),             "Zielone Świątki"],
+    [po(60),             "Boże Ciało"],
+    [new Date(rok,4,1),  "Święto Pracy"],
+    [new Date(rok,4,3),  "Święto Konstytucji"],
+    [new Date(rok,7,15), "Wniebowzięcie"],
+    [new Date(rok,10,1), "Wszystkich Świętych"],
+    [new Date(rok,10,11),"Święto Niepodległości"],
+    [new Date(rok,11,25),"Boże Narodzenie"],
+    [new Date(rok,11,26),"drugi dzień świąt"],
+  ];
+}
+const SWIETA = new Map();
+if (CONFIG.swietaAutomatycznie){
+  const r = new Date().getFullYear();
+  [r, r+1].forEach(rok => swietaRoku(rok).forEach(([d,n]) => SWIETA.set(klucz(d), n)));
+}
+function swieto(data){ return SWIETA.get(klucz(data)) || null; }
+
 /* --- pomocnicze ----------------------------------------------------- */
 function klucz(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 function slotyDnia(data){
   if (CONFIG.wolne.includes(klucz(data))) return [];
+  if (swieto(data)) return [];
   const lista = CONFIG.godziny[data.getDay()] || [];
   const prog = Date.now() + CONFIG.wyprzedzenieH*3600*1000;
   return lista.map(g => {
@@ -274,6 +319,13 @@ function slotyDnia(data){
     const d = new Date(data.getFullYear(), data.getMonth(), data.getDate(), h, m, 0, 0);
     return { etykieta: g, data: d, przeszly: d.getTime() < prog };
   }).filter(s => !s.przeszly);
+}
+function opisWolnych(n){
+  if (n === 0) return "komplet";
+  if (n === 1) return "ostatnie miejsce";
+  const dz = n % 10, st = n % 100;
+  const maleMnogie = dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14);
+  return maleMnogie ? `${n} wolne miejsca` : `${n} wolnych miejsc`;
 }
 function najblizszeDni(){
   const out = [];
@@ -320,8 +372,11 @@ function rysujGodziny(){
 
   const sloty = slotyDnia(wybranyDzien);
   if (!sloty.length){
+    const s = swieto(wybranyDzien);
     kom.hidden = false;
-    kom.textContent = "Tego dnia komora jest nieczynna. Wybierz inny dzień z paska powyżej.";
+    kom.textContent = s
+      ? `${s.charAt(0).toUpperCase() + s.slice(1)} — komora nieczynna. Wybierz inny dzień z paska powyżej.`
+      : "Tego dnia komora jest nieczynna. Wybierz inny dzień z paska powyżej.";
     return;
   }
 
@@ -331,18 +386,20 @@ function rysujGodziny(){
     const li = document.createElement("li");
     li.className = "wiersz" + (wolne === 0 ? " komplet" : "");
 
-    const kropki = Array.from({length: CONFIG.pojemnosc}, (_,i) =>
-      `<span class="kropka${i < zajete ? " zajeta" : ""}"></span>`).join("");
+    // do ośmiu miejsc — kropki; powyżej robi się z tego stonoga, więc słupek
+    const wskaznik = CONFIG.pojemnosc > 8
+      ? `<span class="slupek"><i style="width:${Math.round(zajete / CONFIG.pojemnosc * 100)}%"></i></span>`
+      : Array.from({length: CONFIG.pojemnosc}, (_,i) =>
+          `<span class="kropka${i < zajete ? " zajeta" : ""}"></span>`).join("");
 
     const btn = document.createElement("button");
     btn.className = "klik"; btn.type = "button";
     if (wolne === 0) btn.disabled = true;
     btn.innerHTML =
       `<span class="godz">${s.etykieta}</span>
-       <span class="miejsca" aria-hidden="true">${kropki}</span>
-       <span class="stan">${wolne === 0 ? "komplet" : (wolne === 1 ? "ostatnie miejsce" : wolne + " wolne miejsca")}</span>`;
-    btn.setAttribute("aria-label",
-      `${s.etykieta}, ${wolne === 0 ? "brak miejsc" : wolne + " wolnych miejsc"}`);
+       <span class="miejsca" aria-hidden="true">${wskaznik}</span>
+       <span class="stan">${opisWolnych(wolne)}</span>`;
+    btn.setAttribute("aria-label", `${s.etykieta}, ${opisWolnych(wolne)}`);
     btn.addEventListener("click", () => {
       otwartySlot = (otwartySlot === s.data.getTime()) ? null : s.data.getTime();
       rysujGodziny();
