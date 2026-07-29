@@ -158,6 +158,14 @@ button.akcja[disabled]{background:var(--zajete);cursor:wait}
 button.cichy{background:none;border:0;color:var(--pol);font-family:inherit;font-size:.9rem;
   cursor:pointer;padding:.8rem .6rem;border-radius:999px}
 button.cichy:hover{color:var(--alarm)}
+button.obsluga-btn{
+  font-family:"Outfit",sans-serif;font-weight:600;font-size:.72rem;
+  letter-spacing:.16em;text-transform:uppercase;
+  color:var(--pol);background:none;border:1px solid var(--linia);
+  border-radius:999px;padding:.6rem 1.2rem;cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+button.obsluga-btn:hover{color:var(--mieta);border-color:var(--mieta)}
 .blad{color:var(--alarm);font-size:.9rem;margin:0 0 .8rem;font-weight:600}
 .zgoda{font-size:.8rem;color:var(--pol);line-height:1.5;margin:.2rem 0 1rem}
 
@@ -275,9 +283,9 @@ button.cichy:hover{color:var(--alarm)}
   <p class="ostrzezenie" style="margin-top:calc(var(--rytm)*1.6)"><b>Uwaga!</b> Jeśli na daną godzinę w grafiku zarezerwowano jedno miejsce, sesja, ze względów bezpieczeństwa, nie odbędzie się. Prosimy o przepisanie się na inny dzień/godzinę albo o kontakt telefoniczny pod jednym z powyższych numerów.</p>
 
   <p style="text-align:center;margin:calc(var(--rytm)*1.4) 0 0">
-    <button class="cichy" id="btn-obsluga" type="button" style="font-size:.78rem">Obsługa</button>
+    <button class="obsluga-btn" id="btn-obsluga" type="button">Obsługa</button>
   </p>
-  <p style="text-align:center;margin:calc(var(--rytm)*.4) 0 0;font-size:.68rem;opacity:.45">wersja 29.07 · v3</p>
+  <p style="text-align:center;margin:calc(var(--rytm)*.4) 0 0;font-size:.68rem;opacity:.45">wersja 28.07 · v4</p>
 
 </div>
 
