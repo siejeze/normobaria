@@ -223,7 +223,7 @@ button.cichy:hover{color:var(--alarm)}
         <h4>Przed sesją</h4>
         <ul>
           <li>Uszy mogą się zatkać jak w samolocie — pomaga przełykanie śliny, żucie gumy albo zatkanie nosa i delikatne „przedmuchanie". Chore uszy lub zatoki? Powiedz obsłudze, kompresję można zwolnić.</li>
-          <li>Sesja trwa ok. 110 minut — w każdej chwili możesz ją przerwać i wyjść.</li>
+          <li>Sesja trwa 90 minut — w każdej chwili możesz ją przerwać i wyjść.</li>
           <li>Pij wodę redoks (z wodorem) — w komorze jest za darmo, wypij przynajmniej 4 szklanki.</li>
           <li>Usiądź swobodnie, nie krzyżuj nóg ani rąk.</li>
         </ul>
@@ -301,7 +301,7 @@ const CONFIG = {
   SUPABASE_URL: "https://klvnaounewzenbyzkfud.supabase.co",
   SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_UYu-5XJ-",
   pojemnosc:    14,        // miejsc w komorze (musi się zgadzać z baza.sql!)
-  dlugoscMin:   110,       // długość sesji w minutach
+  dlugoscMin:   90,       // długość sesji w minutach
   cisnienie:    "1,5 ATA",
   dniNaprzod:   21,
   wyprzedzenieH: 2,       // nie da się zapisać na termin bliższy niż X godzin
@@ -333,6 +333,7 @@ const naglowki = {
 };
 
 let zajetosc = new Map();   // klucz: czas w ms → liczba zajętych miejsc
+let dniWyjatki = new Map(); // klucz: "RRRR-MM-DD" → true (włączony) / false (wyłączony)
 let wybranyDzien = null;
 let otwartySlot = null;
 
@@ -396,10 +397,18 @@ function swieto(data){ return SWIETA.get(klucz(data)) || null; }
 function klucz(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
+function czyOtwarty(data){   // czy dzień jest czynny (bez odcinania przeszłych godzin)
+  const k = klucz(data);
+  const wyj = dniWyjatki.get(k);
+  if (wyj !== undefined) return wyj;            // ręczne ustawienie obsługi ma pierwszeństwo
+  if (CONFIG.wolne.includes(k)) return false;
+  if (swieto(data)) return false;
+  return (CONFIG.godziny[data.getDay()] || []).length > 0;
+}
 function slotyDnia(data){
-  if (CONFIG.wolne.includes(klucz(data))) return [];
-  if (swieto(data)) return [];
-  const lista = CONFIG.godziny[data.getDay()] || [];
+  if (!czyOtwarty(data)) return [];
+  let lista = CONFIG.godziny[data.getDay()] || [];
+  if (!lista.length) lista = CONFIG.godziny[1] || [];  // dzień włączony wyjątkowo — godziny jak w poniedziałek
   const prog = Date.now() + CONFIG.wyprzedzenieH*3600*1000;
   return lista.map(g => {
     const [h,m] = g.split(":").map(Number);
@@ -428,10 +437,14 @@ function najblizszeDni(){
 async function pobierzZajetosc(){
   const od = new Date(); od.setHours(0,0,0,0);
   const url = api(`zajetosc?select=slot,zajete&slot=gte.${encodeURIComponent(od.toISOString())}`);
-  const r = await fetch(url, { headers: naglowki });
+  const [r, rw] = await Promise.all([
+    fetch(url, { headers: naglowki }),
+    fetch(api("dni_wyjatki?select=data,czynne"), { headers: naglowki }),
+  ]);
   if (!r.ok) throw new Error("Nie udało się wczytać grafiku.");
   const dane = await r.json();
   zajetosc = new Map(dane.map(w => [new Date(w.slot).getTime(), w.zajete]));
+  if (rw.ok) dniWyjatki = new Map((await rw.json()).map(w => [w.data, w.czynne]));
 }
 
 /* --- rysowanie ------------------------------------------------------ */
@@ -615,6 +628,39 @@ async function rysujObsluge(){
   }
   if (moje !== obslugaZapytanie) return;   // w międzyczasie ruszyło nowsze rysowanie
   lista.innerHTML = "";
+
+  // przełącznik dnia: włącz / wyłącz / przywróć automatykę
+  {
+    const otwarty = czyOtwarty(wybranyDzien);
+    const wyj = dniWyjatki.get(klucz(wybranyDzien));
+    const liS = document.createElement("li");
+    liS.className = "wiersz";
+    const dS = document.createElement("div");
+    dS.className = "obsluga-wiersz";
+    dS.innerHTML =
+      `Ten dzień: <b>${otwarty ? "czynny" : "nieczynny"}</b> ` +
+      `<span class="kodm">(${wyj === undefined ? "automatycznie" : "ustawione ręcznie"})</span>` +
+      `<button class="cichy odwolaj" type="button" data-a="toggle">${otwarty ? "Wyłącz" : "Włącz"}</button>` +
+      (wyj !== undefined ? `<button class="cichy" type="button" data-a="auto">Automatyka</button>` : "");
+    dS.querySelectorAll("button").forEach(b => b.addEventListener("click", async () => {
+      b.disabled = true;
+      try{
+        const czynne = b.dataset.a === "auto" ? null : !otwarty;
+        const r = await fetch(api("rpc/ustaw_dzien"), {
+          method:"POST", headers: naglowki,
+          body: JSON.stringify({ p_dzien: klucz(wybranyDzien), p_czynne: czynne, p_pin: pinObslugi })
+        });
+        if (!r.ok){
+          let m = "Nie udało się zmienić dnia.";
+          try{ m = (await r.json()).message || m; }catch(_){}
+          throw new Error(m);
+        }
+        await pobierzZajetosc(); rysujDni(); rysujObsluge();
+      }catch(e){ alert(e.message); b.disabled = false; }
+    }));
+    lista.appendChild(liS);
+  }
+
   if (!wpisy.length){
     kom.hidden = false; kom.textContent = "Brak zapisów na ten dzień."; return;
   }
