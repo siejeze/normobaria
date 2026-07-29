@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Komora normobaryczna — zapisy</title>
+<meta name="description" content="Rezerwacja sesji w komorze normobarycznej. Wybierz dzień i godzinę.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#070E22">
+<link rel="icon" href="ikony/ikona-192.png" type="image/png">
+<link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Normobaria">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300..700&family=Plus+Jakarta+Sans:wght@400..700&family=Assistant:wght@300..800&display=swap" rel="stylesheet">
+<style>
+/* ==== PALETA ==================================================== */
+:root{
+  --tlo:#070E22;         /* głęboki granat — prawie czerń */
+  --karta:#0E1D42;       /* karta — jaśniejszy granat */
+  --atrament:#EAF1FF;    /* tekst — chłodna biel na granacie */
+  --pol:#8DA1C9;         /* tekst drugoplanowy */
+  --linia:#20356A;       /* linie, obramowania */
+  --blekit:#2F7BFF;      /* żywy niebieski — akcent czynności */
+  --blekit-jasny:#12234C;/* tło pigułek i panelu na granacie */
+  --mieta:#37FFC6;       /* fluorescencyjna mięta — wolne, potwierdzenie */
+  --mieta-jasna:#0C2A31; /* ciemny miętowy — tło biletu */
+  --zajete:#33477A;      /* zajęte — wygaszony granatoszary */
+  --alarm:#FF4D6B;       /* ostrzeżenie — chłodna malina */
+  --rytm:clamp(16px,3.2vw,24px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--tlo);
+  color:var(--atrament);
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
+  font-size:clamp(16px,1rem,18px);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.plansza{max-width:640px;margin:0 auto;padding:calc(var(--rytm)*1.4) var(--rytm) 120px}
+
+/* ==== NAGŁÓWEK ================================================= */
+.nadpis{
+  display:inline-block;background:var(--blekit-jasny);color:#7FB0FF;
+  font-family:"DM Mono",ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;
+  text-transform:uppercase;padding:.35rem .8rem;border-radius:999px;margin:0 0 1rem;
+}
+h1{
+  font-family:"Assistant",system-ui,sans-serif;font-weight:700;
+  font-size:clamp(2rem,6.8vw,2.75rem);line-height:1.25;letter-spacing:0;
+  text-transform:uppercase;
+  margin:0 0 1.2rem;
+  color:var(--mieta);
+}
+.dane{
+  font-family:"DM Mono",monospace;font-size:.8rem;color:var(--pol);
+  margin:0 0 1.4rem;letter-spacing:.02em;
+}
+
+/* ==== KONTAKT I OSTRZEŻENIE ==================================== */
+.kontakt{background:var(--karta);border:1px solid var(--linia);border-radius:16px;
+  padding:1rem 1.1rem;margin:0 0 .9rem;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.kontakt .etykieta{font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--pol);margin:0 0 .5rem}
+.kontakt p{margin:0;line-height:1.8;font-size:.9rem}
+.kontakt b{font-weight:600}
+.kontakt a{font-family:"DM Mono",monospace;font-size:.92rem;color:#6FA8FF;
+  text-decoration:none;white-space:nowrap}
+.kontakt a:hover{text-decoration:underline}
+.ostrzezenie{background:rgba(255,77,107,.10);border:1px solid rgba(255,77,107,.34);border-radius:16px;
+  padding:.95rem 1.1rem;margin:0 0 .4rem;font-size:.84rem;line-height:1.55}
+.ostrzezenie b{font-family:"Outfit",sans-serif;font-weight:700;color:var(--alarm);
+  letter-spacing:.01em}
+.kreska{border:0;border-top:1px solid var(--linia);margin:calc(var(--rytm)*1.3) 0}
+
+/* ==== PASEK DNI ================================================ */
+.dni{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:thin}
+.dzien{
+  flex:0 0 auto;background:var(--karta);border:1px solid var(--linia);
+  border-radius:14px;padding:.55rem .75rem;cursor:pointer;color:var(--pol);
+  font-family:"DM Mono",monospace;font-size:.72rem;line-height:1.35;
+  text-align:center;min-width:60px;transition:transform .15s,border-color .15s,background .15s;
+}
+.dzien b{display:block;font-family:"Outfit",sans-serif;font-size:1.25rem;font-weight:600;color:var(--atrament)}
+.dzien:hover{border-color:var(--blekit);transform:translateY(-2px)}
+.dzien[aria-pressed="true"]{background:var(--blekit);border-color:var(--blekit);color:#EAF2FF;box-shadow:0 6px 18px rgba(47,123,255,.45)}
+.dzien[aria-pressed="true"] b{color:#fff}
+.dzien.pusty{opacity:.45}
+
+/* ==== LISTA GODZIN ============================================= */
+.naglowek-dnia{
+  font-family:"Outfit",sans-serif;font-weight:600;font-size:1.15rem;letter-spacing:-.01em;
+  margin:calc(var(--rytm)*1.1) 0 .7rem;
+}
+.lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.wiersz{background:var(--karta);border:1px solid var(--linia);border-radius:16px;overflow:hidden;
+  transition:border-color .15s,box-shadow .15s}
+.wiersz:hover{border-color:var(--blekit);box-shadow:0 6px 20px rgba(47,123,255,.22)}
+.wiersz.komplet{background:#0A1533;box-shadow:none}
+.klik{
+  width:100%;display:flex;align-items:center;gap:.9rem;
+  background:none;border:0;padding:.95rem 1rem;cursor:pointer;text-align:left;
+  font:inherit;color:inherit;
+}
+.klik[disabled]{cursor:default;color:var(--pol)}
+.klik:focus-visible{outline:2px solid var(--blekit);outline-offset:-2px}
+.godz{font-family:"DM Mono",monospace;font-weight:500;font-size:1.1rem;min-width:4.1em}
+.miejsca{display:flex;gap:5px;flex:0 0 auto}
+.kropka{width:10px;height:10px;border-radius:50%;background:var(--mieta)}
+.kropka.zajeta{background:var(--zajete);box-shadow:none}
+.slupek{display:block;width:78px;height:8px;border-radius:999px;background:var(--mieta);overflow:hidden}
+.slupek i{display:block;height:100%;background:var(--zajete);transition:width .3s}
+.komplet .slupek{background:var(--zajete);box-shadow:none}
+.stan{margin-left:auto;font-size:.85rem;font-weight:600;color:var(--mieta);text-align:right}
+.komplet .stan{color:var(--pol);font-weight:400;text-shadow:none}
+.komplet .godz{color:var(--pol)}
+
+/* ==== PANEL ZAPISU ============================================= */
+.panel{background:var(--blekit-jasny);padding:1.1rem 1.1rem 1.2rem;border-top:1px solid #26407A}
+.panel h3{font-family:"Outfit",sans-serif;font-weight:600;font-size:1rem;margin:0 0 .9rem}
+label{display:block;font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--pol);margin:0 0 .35rem}
+input,select,textarea{
+  width:100%;font:inherit;font-size:1rem;padding:.7rem .8rem;margin-bottom:.85rem;
+  background:#0A1740;border:1px solid #2A4685;border-radius:12px;color:var(--atrament);
+}
+input::placeholder,textarea::placeholder{color:#6B7EA6}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--blekit);outline-offset:-1px;border-color:var(--blekit)}
+textarea{min-height:66px;resize:vertical}
+.para{display:flex;gap:.7rem}
+.para>div{flex:1}
+button.akcja{
+  font-family:"Outfit",sans-serif;font-weight:600;font-size:.98rem;
+  background:var(--blekit);color:#fff;border:0;border-radius:999px;
+  padding:.8rem 1.6rem;cursor:pointer;transition:background .15s,transform .1s;
+  box-shadow:0 6px 20px rgba(47,123,255,.42);
+}
+button.akcja:hover{background:#4C90FF}
+button.akcja:active{transform:scale(.98)}
+button.akcja[disabled]{background:var(--zajete);cursor:wait}
+button.cichy{background:none;border:0;color:var(--pol);font-family:inherit;font-size:.9rem;
+  cursor:pointer;padding:.8rem .6rem;border-radius:999px}
+button.cichy:hover{color:var(--alarm)}
+.blad{color:var(--alarm);font-size:.9rem;margin:0 0 .8rem;font-weight:600}
+.zgoda{font-size:.8rem;color:var(--pol);line-height:1.5;margin:.2rem 0 1rem}
+
+/* ==== POTWIERDZENIE ============================================ */
+.bilet{background:var(--mieta-jasna);border:1px solid rgba(55,255,198,.45);color:var(--atrament);
+  padding:1.3rem;border-radius:20px;margin-bottom:1rem}
+.bilet h3{font-family:"Outfit",sans-serif;font-weight:700;font-size:1.25rem;margin:0 0 .5rem;
+  color:var(--mieta)}
+.bilet p{margin:.3rem 0;font-size:.94rem;color:#9FE6CF}
+
+.komunikat{font-size:.93rem;color:var(--pol);background:var(--karta);border:1px dashed var(--linia);
+  border-radius:16px;padding:1.1rem;text-align:center}
+
+/* ==== OBSŁUGA ================================================== */
+.obsluga-wiersz{padding:.85rem 1rem;font-size:.95rem;line-height:1.55}
+.obsluga-wiersz .godz{color:var(--mieta);margin-right:.5rem}
+.obsluga-wiersz .tel{font-family:"DM Mono",monospace;font-size:.9rem;color:#6FA8FF;
+  text-decoration:none;white-space:nowrap;margin-left:.5rem}
+.obsluga-wiersz .tel:hover{text-decoration:underline}
+.obsluga-wiersz .uwagi{display:block;color:var(--pol);font-size:.85rem;margin-top:.15rem}
+.obsluga-wiersz .odwolaj{float:right}
+
+/* ==== PASEK INSTALACJI I BRAK SIECI ============================ */
+.pasek{
+  position:fixed;left:0;right:0;bottom:0;z-index:9;
+  background:#0E1D42;color:#E7EEFA;border-top:1px solid var(--linia);
+  padding:.9rem var(--rytm);display:flex;align-items:center;gap:.9rem;
+  font-size:.88rem;line-height:1.4;box-shadow:0 -4px 24px rgba(0,0,0,.5);
+}
+.pasek[hidden]{display:none}
+.pasek .tekst{flex:1}
+.pasek .tekst b{color:#fff;font-weight:600}
+.pasek button.akcja{padding:.55rem 1.1rem;font-size:.88rem;flex:0 0 auto}
+.pasek button.zamknij{background:none;border:0;color:#93A8C6;font-size:1.5rem;line-height:1;
+  cursor:pointer;padding:0 .2rem;flex:0 0 auto}
+.pasek.brak-sieci{background:var(--alarm)}
+</style>
+</head>
+<body>
+<div class="plansza">
+
+  <header>
+    <p class="nadpis" id="nadpis">Normobaria</p>
+    <h1>Zapisz się<br>na sesję</h1>
+
+    <p class="dane" id="dane"></p>
+
+    <div class="kontakt">
+      <p class="etykieta">Kontakt w sprawie zapisów i pytania</p>
+      <p><b>Aneta Jadczyszyn</b> &nbsp;<a href="tel:+48796676132">796 676 132</a><br>
+         <b>Maciej Jadczyszyn</b> &nbsp;<a href="tel:+48519519828">519 519 828</a></p>
+    </div>
+
+  </header>
+
+  <hr class="kreska">
+
+  <nav class="dni" id="dni" aria-label="Wybór dnia"></nav>
+
+  <h2 class="naglowek-dnia" id="naglowek-dnia">—</h2>
+  <ul class="lista" id="lista"></ul>
+  <p class="komunikat" id="komunikat">Wczytuję wolne terminy…</p>
+
+  <p class="ostrzezenie" style="margin-top:calc(var(--rytm)*1.6)"><b>Uwaga!</b> Jeśli na dany dzień w grafiku zapisana jest jedna osoba, sesja normobarii ze względów bezpieczeństwa się nie odbędzie. Prosimy o przepisanie się na inny dzień albo o kontakt telefoniczny pod jednym z powyższych numerów.</p>
+
+  <p style="text-align:center;margin:calc(var(--rytm)*1.4) 0 0">
+    <button class="cichy" id="btn-obsluga" type="button" style="font-size:.78rem">Obsługa</button>
+  </p>
+
+</div>
+
+<div class="pasek" id="pasek-instaluj" hidden>
+  <span class="tekst" id="tekst-instaluj"></span>
+  <button class="akcja" id="btn-instaluj" hidden>Dodaj</button>
+  <button class="zamknij" id="btn-zamknij-instaluj" aria-label="Zamknij">×</button>
+</div>
+
+<div class="pasek brak-sieci" id="pasek-sieci" hidden>
+  <span class="tekst">Brak połączenia. Wolne terminy pokażą się, gdy internet wróci.</span>
+</div>
+
+<script>
+/* =====================================================================
+   USTAWIENIA — edytujesz tylko ten blok.
+   ===================================================================== */
+const CONFIG = {
+  nazwa:        "Normobaria",
+  miejsce:      "Sanok",
+  SUPABASE_URL: "https://klvnaounewzenbyzkfud.supabase.co",
+  SUPABASE_KEY: "sb_publishable_fvXyQhcwugLU-Eh7CWJeNQ_UYu-5XJ-",
+  pojemnosc:    14,        // miejsc w komorze (musi się zgadzać z baza.sql!)
+  dlugoscMin:   90,       // długość sesji w minutach
+  cisnienie:    "1,5 ATA",
+  dniNaprzod:   21,
+  wyprzedzenieH: 2,       // nie da się zapisać na termin bliższy niż X godzin
+  // godziny startu sesji dla każdego dnia tygodnia (0 = niedziela)
+  godziny: {
+    0: [],
+    1: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    2: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    3: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    4: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    5: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+    6: ["09:00","11:00","13:00","15:00","17:00","19:00"],
+  },
+  // dni zamknięte, format "RRRR-MM-DD" — Twoje urlopy, przeglądy, wyjazdy
+  wolne: ["2026-08-15"],
+  // polskie święta ustawowo wolne — apka liczy je sama, także ruchome
+  swietaAutomatycznie: true,
+};
+
+/* ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const DNI_PL   = ["niedz.","pon.","wt.","śr.","czw.","pt.","sob."];
+const MIES_PL  = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"];
+const api = (sciezka) => CONFIG.SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/" + sciezka;
+const naglowki = {
+  "apikey": CONFIG.SUPABASE_KEY,
+  "Authorization": "Bearer " + CONFIG.SUPABASE_KEY,
+  "Content-Type": "application/json",
+};
+
+let zajetosc = new Map();   // klucz: czas w ms → liczba zajętych miejsc
+let wybranyDzien = null;
+let otwartySlot = null;
+
+/* --- nagłówek ------------------------------------------------------- */
+function ileMiejsc(n){   // polska odmiana: 1 miejsce, 2-4 miejsca, 5+ miejsc
+  if (n === 1) return "1 miejsce";
+  const dz = n % 10, st = n % 100;
+  return (dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14)) ? `${n} miejsca` : `${n} miejsc`;
+}
+$("#nadpis").textContent = CONFIG.nazwa + " · " + CONFIG.miejsce;
+$("#dane").textContent = `${CONFIG.dlugoscMin} min · ${CONFIG.cisnienie} · ${ileMiejsc(CONFIG.pojemnosc)} w komorze`;
+document.title = `${CONFIG.nazwa} ${CONFIG.miejsce} — zapisy`;
+
+/* --- święta --------------------------------------------------------- */
+// Wielkanoc wg algorytmu Gaussa-Meeusa. Od niej zależą wszystkie ruchome.
+function wielkanoc(rok){
+  const a = rok % 19, b = Math.floor(rok/100), c = rok % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4), k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l) / 451);
+  const mies = Math.floor((h + l - 7*m + 114) / 31);
+  const dz   = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(rok, mies - 1, dz);
+}
+function swietaRoku(rok){
+  const W = wielkanoc(rok);
+  const po = (ile) => { const x = new Date(W); x.setDate(x.getDate() + ile); return x; };
+  return [
+    [new Date(rok,0,1),  "Nowy Rok"],
+    [new Date(rok,0,6),  "Trzech Króli"],
+    [W,                  "Wielkanoc"],
+    [po(1),              "Poniedziałek Wielkanocny"],
+    [po(49),             "Zielone Świątki"],
+    [po(60),             "Boże Ciało"],
+    [new Date(rok,4,1),  "Święto Pracy"],
+    [new Date(rok,4,3),  "Święto Konstytucji"],
+    [new Date(rok,7,15), "Wniebowzięcie"],
+    [new Date(rok,10,1), "Wszystkich Świętych"],
+    [new Date(rok,10,11),"Święto Niepodległości"],
+    [new Date(rok,11,25),"Boże Narodzenie"],
+    [new Date(rok,11,26),"drugi dzień świąt"],
+  ];
+}
+const SWIETA = new Map();
+if (CONFIG.swietaAutomatycznie){
+  const r = new Date().getFullYear();
+  [r, r+1].forEach(rok => swietaRoku(rok).forEach(([d,n]) => SWIETA.set(klucz(d), n)));
+}
+function swieto(data){ return SWIETA.get(klucz(data)) || null; }
+
+/* --- pomocnicze ----------------------------------------------------- */
+function klucz(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function slotyDnia(data){
+  if (CONFIG.wolne.includes(klucz(data))) return [];
+  if (swieto(data)) return [];
+  const lista = CONFIG.godziny[data.getDay()] || [];
+  const prog = Date.now() + CONFIG.wyprzedzenieH*3600*1000;
+  return lista.map(g => {
+    const [h,m] = g.split(":").map(Number);
+    const d = new Date(data.getFullYear(), data.getMonth(), data.getDate(), h, m, 0, 0);
+    return { etykieta: g, data: d, przeszly: d.getTime() < prog };
+  }).filter(s => !s.przeszly);
+}
+function opisWolnych(n){
+  if (n === 0) return "komplet";
+  if (n === 1) return "ostatnie miejsce";
+  const dz = n % 10, st = n % 100;
+  const maleMnogie = dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14);
+  return maleMnogie ? `${n} wolne miejsca` : `${n} wolnych miejsc`;
+}
+function najblizszeDni(){
+  const out = [];
+  const dzis = new Date(); dzis.setHours(0,0,0,0);
+  for (let i=0; i<CONFIG.dniNaprzod; i++){
+    const d = new Date(dzis); d.setDate(dzis.getDate()+i);
+    out.push({ data:d, sloty: slotyDnia(d).length });
+  }
+  return out;
+}
+
+/* --- pobranie zajętości --------------------------------------------- */
+async function pobierzZajetosc(){
+  const od = new Date(); od.setHours(0,0,0,0);
+  const url = api(`zajetosc?select=slot,zajete&slot=gte.${encodeURIComponent(od.toISOString())}`);
+  const r = await fetch(url, { headers: naglowki });
+  if (!r.ok) throw new Error("Nie udało się wczytać grafiku.");
+  const dane = await r.json();
+  zajetosc = new Map(dane.map(w => [new Date(w.slot).getTime(), w.zajete]));
+}
+
+/* --- rysowanie ------------------------------------------------------ */
+function rysujDni(){
+  const nav = $("#dni");
+  nav.innerHTML = "";
+  najblizszeDni().forEach(({data, sloty}) => {
+    const b = document.createElement("button");
+    b.className = "dzien" + (sloty === 0 ? " pusty" : "");
+    b.type = "button";
+    b.setAttribute("aria-pressed", wybranyDzien && klucz(wybranyDzien) === klucz(data));
+    b.innerHTML = `${DNI_PL[data.getDay()]}<b>${data.getDate()}</b>`;
+    b.addEventListener("click", () => { wybranyDzien = data; otwartySlot = null; rysujDni(); rysujGodziny(); });
+    nav.appendChild(b);
+  });
+}
+
+function rysujGodziny(){
+  const lista = $("#lista"), kom = $("#komunikat");
+  lista.innerHTML = ""; kom.hidden = true;
+  if (!wybranyDzien) return;
+  if (trybObsluga){ rysujObsluge(); return; }
+
+  $("#naglowek-dnia").textContent =
+    `${DNI_PL[wybranyDzien.getDay()]} ${wybranyDzien.getDate()} ${MIES_PL[wybranyDzien.getMonth()]}`;
+
+  const sloty = slotyDnia(wybranyDzien);
+  if (!sloty.length){
+    const s = swieto(wybranyDzien);
+    kom.hidden = false;
+    kom.textContent = s
+      ? `${s.charAt(0).toUpperCase() + s.slice(1)} — komora nieczynna. Wybierz inny dzień z paska powyżej.`
+      : "Tego dnia komora jest nieczynna. Wybierz inny dzień z paska powyżej.";
+    return;
+  }
+
+  sloty.forEach(s => {
+    const zajete = zajetosc.get(s.data.getTime()) || 0;
+    const wolne = Math.max(0, CONFIG.pojemnosc - zajete);
+    const li = document.createElement("li");
+    li.className = "wiersz" + (wolne === 0 ? " komplet" : "");
+
+    // do ośmiu miejsc — kropki; powyżej robi się z tego stonoga, więc słupek
+    const wskaznik = CONFIG.pojemnosc > 8
+      ? `<span class="slupek"><i style="width:${Math.round(zajete / CONFIG.pojemnosc * 100)}%"></i></span>`
+      : Array.from({length: CONFIG.pojemnosc}, (_,i) =>
+          `<span class="kropka${i < zajete ? " zajeta" : ""}"></span>`).join("");
+
+    const btn = document.createElement("button");
+    btn.className = "klik"; btn.type = "button";
+    if (wolne === 0) btn.disabled = true;
+    btn.innerHTML =
+      `<span class="godz">${s.etykieta}</span>
+       <span class="miejsca" aria-hidden="true">${wskaznik}</span>
+       <span class="stan">${opisWolnych(wolne)}</span>`;
+    btn.setAttribute("aria-label", `${s.etykieta}, ${opisWolnych(wolne)}`);
+    btn.addEventListener("click", () => {
+      otwartySlot = (otwartySlot === s.data.getTime()) ? null : s.data.getTime();
+      rysujGodziny();
+      if (otwartySlot) setTimeout(() => $("#imie")?.focus(), 60);
+    });
+
+    li.appendChild(btn);
+    if (otwartySlot === s.data.getTime()) li.appendChild(panelZapisu(s, wolne));
+    lista.appendChild(li);
+  });
+}
+
+/* --- panel zapisu --------------------------------------------------- */
+function panelZapisu(slot, wolne){
+  const div = document.createElement("div");
+  div.className = "panel";
+  const opcje = Array.from({length: wolne}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join("");
+  div.innerHTML = `
+    <h3>Rezerwacja na ${slot.etykieta}</h3>
+    <p class="blad" id="blad" hidden></p>
+    <label for="imie">Imię i nazwisko</label>
+    <input id="imie" autocomplete="name" maxlength="60">
+    <div class="para">
+      <div>
+        <label for="tel">Telefon</label>
+        <input id="tel" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="600 100 200">
+      </div>
+      <div style="flex:0 0 6.5rem">
+        <label for="osoby">Osób</label>
+        <select id="osoby">${opcje}</select>
+      </div>
+    </div>
+    <label for="uwagi">Uwagi (nieobowiązkowo)</label>
+    <textarea id="uwagi" maxlength="300" placeholder="Pierwsza wizyta, pytanie o przeciwwskazania…"></textarea>
+    <p class="zgoda">Imię i telefon służą wyłącznie do potwierdzenia i odwołania wizyty. Inni klienci widzą tylko liczbę wolnych miejsc.</p>
+    <button class="akcja" id="btn-zapisz">Rezerwuję</button>
+    <button class="cichy" id="btn-anuluj">Rezygnuję</button>
+  `;
+  div.querySelector("#btn-anuluj").addEventListener("click", () => { otwartySlot = null; rysujGodziny(); });
+  div.querySelector("#btn-zapisz").addEventListener("click", () => zapisz(slot, div));
+  return div;
+}
+
+async function zapisz(slot, panel){
+  const btn = panel.querySelector("#btn-zapisz");
+  const blad = panel.querySelector("#blad");
+  const dane = {
+    p_slot:    slot.data.toISOString(),
+    p_imie:    panel.querySelector("#imie").value,
+    p_telefon: panel.querySelector("#tel").value,
+    p_osoby:   Number(panel.querySelector("#osoby").value),
+    p_uwagi:   panel.querySelector("#uwagi").value,
+  };
+  blad.hidden = true;
+  btn.disabled = true; btn.textContent = "Zapisuję…";
+  try{
+    const r = await fetch(api("rpc/zarezerwuj"), {
+      method:"POST", headers: naglowki, body: JSON.stringify(dane)
+    });
+    const wynik = await r.json();
+    if (!r.ok) throw new Error(wynik.message || wynik.hint || "Nie udało się zapisać.");
+    await pobierzZajetosc();
+    pokazBilet(slot, dane.p_osoby);
+  }catch(e){
+    blad.hidden = false; blad.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Rezerwuję";
+    await pobierzZajetosc();
+    const otwarty = otwartySlot; rysujGodziny(); otwartySlot = otwarty;
+  }
+}
+
+function pokazBilet(slot, osoby){
+  otwartySlot = null;
+  rysujDni(); rysujGodziny();
+  const bilet = document.createElement("div");
+  bilet.className = "bilet";
+  bilet.setAttribute("role","status");
+  bilet.innerHTML = `
+    <h3>Termin zarezerwowany</h3>
+    <p>${DNI_PL[slot.data.getDay()]} ${slot.data.getDate()} ${MIES_PL[slot.data.getMonth()]}, godz. ${slot.etykieta} — ${osoby === 1 ? "1 osoba" : osoby + " osoby"}</p>
+    <p>Przyjdź 10 minut wcześniej. Do zobaczenia.</p>
+    <p>Coś Ci wypadło? Zadzwoń: 796 676 132 lub 519 519 828.</p>
+  `;
+  const lista = $("#lista");
+  lista.parentNode.insertBefore(bilet, lista);
+  bilet.scrollIntoView({behavior:"smooth", block:"center"});
+  setTimeout(() => bilet.remove(), 60000);
+}
+
+/* --- tryb obsługi (PIN) --------------------------------------------- */
+let trybObsluga = false;
+let pinObslugi = null;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function opisOsob(n){   // 1 osoba, 2-4 osoby, 5+ osób
+  if (n === 1) return "1 osoba";
+  const dz = n % 10, st = n % 100;
+  return (dz >= 2 && dz <= 4 && !(st >= 12 && st <= 14)) ? `${n} osoby` : `${n} osób`;
+}
+
+async function pobierzListeObslugi(){
+  const r = await fetch(api("rpc/lista_zapisow"), {
+    method:"POST", headers: naglowki,
+    body: JSON.stringify({ p_dzien: klucz(wybranyDzien), p_pin: pinObslugi })
+  });
+  const wynik = await r.json();
+  if (!r.ok) throw new Error(wynik.message || "Nie udało się pobrać listy.");
+  return wynik;
+}
+
+let obslugaZapytanie = 0;   // strażnik wyścigu: starsze rysowanie nie nadpisze nowszego
+async function rysujObsluge(){
+  const moje = ++obslugaZapytanie;
+  const lista = $("#lista"), kom = $("#komunikat");
+  lista.innerHTML = ""; kom.hidden = true;
+  $("#naglowek-dnia").textContent =
+    `Obsługa · ${DNI_PL[wybranyDzien.getDay()]} ${wybranyDzien.getDate()} ${MIES_PL[wybranyDzien.getMonth()]}`;
+  let wpisy;
+  try{ wpisy = await pobierzListeObslugi(); }
+  catch(e){
+    if (moje !== obslugaZapytanie) return;
+    trybObsluga = false; pinObslugi = null;
+    $("#btn-obsluga").textContent = "Obsługa";
+    alert(e.message); rysujGodziny(); return;
+  }
+  if (moje !== obslugaZapytanie) return;   // w międzyczasie ruszyło nowsze rysowanie
+  lista.innerHTML = "";
+  if (!wpisy.length){
+    kom.hidden = false; kom.textContent = "Brak zapisów na ten dzień."; return;
+  }
+  wpisy.forEach(w => {
+    const d = new Date(w.slot);
+    const godz = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    const li = document.createElement("li");
+    li.className = "wiersz";
+    const div = document.createElement("div");
+    div.className = "obsluga-wiersz";
+    div.innerHTML =
+      `<button class="cichy odwolaj" type="button">Odwołaj</button>
+       <b class="godz">${godz}</b><b>${esc(w.imie)}</b> — ${opisOsob(w.osoby)}
+       <a class="tel" href="tel:${esc(w.telefon)}">${esc(w.telefon)}</a>
+       ${w.uwagi ? `<span class="uwagi">${esc(w.uwagi)}</span>` : ""}`;
+    div.querySelector(".odwolaj").addEventListener("click", async (ev) => {
+      if (!confirm(`Odwołać rezerwację: ${w.imie}, ${godz}?`)) return;
+      ev.target.disabled = true;
+      try{
+        const r = await fetch(api("rpc/odwolaj_obsluga"), {
+          method:"POST", headers: naglowki,
+          body: JSON.stringify({ p_id: w.id, p_pin: pinObslugi })
+        });
+        const wynik = await r.json();
+        if (!r.ok) throw new Error(wynik.message || "Nie udało się odwołać.");
+        await pobierzZajetosc(); rysujDni(); rysujObsluge();
+      }catch(e){ alert(e.message); ev.target.disabled = false; }
+    });
+    li.appendChild(div);
+    lista.appendChild(li);
+  });
+}
+
+$("#btn-obsluga").addEventListener("click", () => {
+  if (trybObsluga){
+    trybObsluga = false; pinObslugi = null;
+    $("#btn-obsluga").textContent = "Obsługa";
+    rysujGodziny(); return;
+  }
+  const pin = prompt("PIN obsługi:");
+  if (!pin) return;
+  pinObslugi = pin; trybObsluga = true;
+  document.querySelectorAll(".bilet").forEach(b => b.remove());   // usuń wiszące potwierdzenie
+  $("#btn-obsluga").textContent = "Wyjdź z trybu obsługi";
+  rysujGodziny();
+});
+
+/* --- instalacja na telefonie i tryb offline ------------------------- */
+const pasekI = $("#pasek-instaluj"), tekstI = $("#tekst-instaluj"), btnI = $("#btn-instaluj");
+let monit = null;
+
+function odlozone(){
+  try{ return localStorage.getItem("instalacja-odlozona") === "1"; }catch(e){ return false; }
+}
+function odloz(){
+  try{ localStorage.setItem("instalacja-odlozona","1"); }catch(e){}
+  pasekI.hidden = true;
+}
+$("#btn-zamknij-instaluj").addEventListener("click", odloz);
+
+const juzZainstalowana =
+  window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+// Android / Chrome — system sam podaje monit, my tylko wybieramy moment
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  monit = e;
+  if (juzZainstalowana || odlozone()) return;
+  tekstI.innerHTML = "<b>Zapisz apkę na telefonie</b> — następnym razem zarezerwujesz w dwa kliknięcia.";
+  btnI.hidden = false;
+  pasekI.hidden = false;
+});
+
+btnI.addEventListener("click", async () => {
+  if (!monit) return;
+  pasekI.hidden = true;
+  monit.prompt();
+  await monit.userChoice;
+  monit = null;
+});
+
+window.addEventListener("appinstalled", () => { pasekI.hidden = true; odloz(); });
+
+// iPhone — Safari nie ma monitu, trzeba powiedzieć ludzku, gdzie kliknąć
+const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if (iOS && !juzZainstalowana && !odlozone()){
+  tekstI.innerHTML = "<b>Zapisz apkę na telefonie:</b> przycisk Udostępnij na dole, potem „Dodaj do ekranu początkowego”.";
+  setTimeout(() => { pasekI.hidden = false; }, 2500);
+}
+
+// brak sieci
+const pasekS = $("#pasek-sieci");
+function stanSieci(){
+  pasekS.hidden = navigator.onLine;
+  if (!navigator.onLine) pasekI.hidden = true;
+}
+window.addEventListener("online", async () => {
+  stanSieci();
+  try{ await pobierzZajetosc(); rysujDni(); rysujGodziny(); }catch(e){}
+});
+window.addEventListener("offline", stanSieci);
+stanSieci();
+
+// service worker — apka wstaje natychmiast, nawet w słabym zasięgu
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+
+/* --- start ---------------------------------------------------------- */
+(async function start(){
+  try{
+    await pobierzZajetosc();
+  }catch(e){
+    $("#komunikat").textContent = "Nie mogę teraz wczytać grafiku. Odśwież stronę za chwilę albo zadzwoń.";
+    return;
+  }
+  const pierwszy = najblizszeDni().find(d => d.sloty > 0);
+  wybranyDzien = pierwszy ? pierwszy.data : new Date();
+  rysujDni(); rysujGodziny();
+  // odświeżanie w tle — ktoś inny mógł zająć miejsce
+  setInterval(async () => {
+    try{ await pobierzZajetosc(); if (!otwartySlot) rysujGodziny(); }catch(e){}
+  }, 45000);
+})();
+</script>
+</body>
+</html>
