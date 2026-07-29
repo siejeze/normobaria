@@ -6,7 +6,7 @@
    wczorajszy grafik i zapisał się na zajętą godzinę.
    ===================================================================== */
 
-const WERSJA   = "normobaria-v3";
+const WERSJA   = "normobaria-v4";
 const SZKIELET = WERSJA + "-szkielet";
 const KROJE    = WERSJA + "-kroje";
 
