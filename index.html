@@ -277,6 +277,7 @@ button.cichy:hover{color:var(--alarm)}
   <p style="text-align:center;margin:calc(var(--rytm)*1.4) 0 0">
     <button class="cichy" id="btn-obsluga" type="button" style="font-size:.78rem">Obsługa</button>
   </p>
+  <p style="text-align:center;margin:calc(var(--rytm)*.4) 0 0;font-size:.68rem;opacity:.45">wersja 29.07 · v3</p>
 
 </div>
 
@@ -658,6 +659,7 @@ async function rysujObsluge(){
         await pobierzZajetosc(); rysujDni(); rysujObsluge();
       }catch(e){ alert(e.message); b.disabled = false; }
     }));
+    liS.appendChild(dS);
     lista.appendChild(liS);
   }
 
